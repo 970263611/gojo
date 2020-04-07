@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.dahuaboke</groupId>
-	<artifactId>gojo</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>com.dahuagojo</groupId>
+	<artifactId>parent</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>gojo</name>
 	<packaging>pom</packaging>
 
@@ -12,10 +12,21 @@
 		<module>gojo-web</module>
 		<module>pojo-service</module>
 		<module>pojo-handler</module>
+		<module>gojo-api</module>
 	</modules>
 
 	<properties>
 		<java.version>1.8</java.version>
+		<gojo.version>1.0.0-SNAPSHOT</gojo.version>
 	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.12</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 
 </project>
