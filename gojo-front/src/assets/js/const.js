@@ -1,0 +1,5 @@
+export const user2me = "user2me"
+export const group2me = "group2me"
+export const userChat = "userChat"
+export const groupChat = "groupChat"
+export const activeChat = "activeChat"

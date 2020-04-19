@@ -9,29 +9,33 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import web.handler.SocketHandler;
 
-public class SendMsgTask implements Runnable {
+import java.util.List;
 
-    public SendMsgTask(Object bean, Chats model) {
-        this.model = model;
+public class BatchSendMsgTask implements Runnable {
+
+    public BatchSendMsgTask(Object bean, List<Chats> models) {
+        this.models = models;
         this.bean = bean;
     }
 
-    private Chats model;
+    private List<Chats> models;
     private Object bean;
 
     @SneakyThrows
     @Override
     public void run() {
         ConcurrentHashMap<Object, WebSocketSession> map = SocketHandler.getSessions();
-        if (map.containsKey(model.getToUserId())) {
-            WebSocketSession session = map.get(model.getToUserId());
-            if (session.isOpen()) {
-                session.sendMessage(new TextMessage(JSON.toJSONString(model)));
+        for(Chats model : models){
+            if (map.containsKey(model.getToUserId())) {
+                WebSocketSession session = map.get(model.getToUserId());
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(JSON.toJSONString(model)));
+                } else {
+                    ((MessageService) bean).saveMsg(model);
+                }
             } else {
                 ((MessageService) bean).saveMsg(model);
             }
-        } else {
-            ((MessageService) bean).saveMsg(model);
         }
     }
 }

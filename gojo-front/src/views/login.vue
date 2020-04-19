@@ -12,6 +12,7 @@
 </template>
 
 <script>
+  import {getUserCookies} from '../assets/js/user-cookies.js'
   export default {
     data() {
       return{
@@ -19,6 +20,9 @@
         password:"",
         alertMsg:""
       }
+    },
+    created() {
+
     },
     methods: {
       toLogin() {
@@ -33,14 +37,17 @@
           'password': this.password.trim()
         }).then(function (response) {
             if(response.data.flag){
-              fun.$router.push('/index')
+              const flag = getUserCookies(fun.$cookies,fun.$http)
+              if(flag){
+                fun.$router.push('/index')
+              }
             }else{
               fun.alertMsg = response.data.msg
               fun.open()
             }
           }).catch(function (error) {
             console.log(error);
-          });
+          })
       },
       open() {
         this.$message.error(this.alertMsg);

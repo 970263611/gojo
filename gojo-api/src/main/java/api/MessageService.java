@@ -1,13 +1,21 @@
 package api;
 
+import model.Chats;
+import model.Friend;
+import model.Group;
 import model.User;
-import model.UserToUser;
+
+import java.util.List;
 
 public interface MessageService {
 
-    void saveMsg(UserToUser model);
+    void saveMsg(Chats model);
 
     User check(String username);
 
     void saveUser(User user) throws Exception;
+
+    List<Friend> getUserFriends(String userId);
+
+    List<Group> getUserGroups(String userId);
 }

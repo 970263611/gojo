@@ -3,10 +3,14 @@ import App from './App'
 import router from './router'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import 'element-ui/lib/theme-chalk/base.css';
 import axios from 'axios'
+import VueCookies from 'vue-cookies'
+
+Vue.use(VueCookies)
+Vue.use(ElementUI)
 
 Vue.prototype.$http = axios
-Vue.use(ElementUI)
 
 Vue.config.productionTip = false
 

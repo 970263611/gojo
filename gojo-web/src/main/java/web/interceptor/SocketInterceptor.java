@@ -10,6 +10,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 import util.Const;
 import exception.impl.NoLoginException;
+import web.util.WebUtil;
 
 import java.util.Map;
 
@@ -22,11 +23,9 @@ public class SocketInterceptor extends HttpSessionHandshakeInterceptor {
             ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
             //HttpSession httpSession = servletRequest.getServletRequest().getSession(false);
             if (servletRequest.getServletRequest().getSession(false) != null) {
-                Session session = SecurityUtils.getSubject().getSession();
-                if (session != null && session.getAttribute("user") != null) {
-                    User user = (User) session.getAttribute("user");
-                    attributes.put(Const.LOGIN_USER_ID_CONST, user.getId());
-                }
+                User user = WebUtil.getLoginUser();
+                attributes.put(Const.LOGIN_USER_ID_CONST, user.getId());
+                attributes.put(Const.LOGIN_USER_NAME_CONST, user.getUsername());
             }else{
                 throw new NoLoginException("用户未登录");
             }
