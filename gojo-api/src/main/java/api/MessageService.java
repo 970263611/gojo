@@ -18,4 +18,6 @@ public interface MessageService {
     List<Friend> getUserFriends(String userId);
 
     List<Group> getUserGroups(String userId);
+
+    List<Chats> getOfflineMsg(String userId);
 }

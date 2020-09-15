@@ -1,28 +1,24 @@
-import {group2me, groupChat, user2me, userChat, activeChat} from "./const";
+import {activeChat, group2me, groupChat, user2me, userChat} from "./const";
 //加载用户好友和群组信息
-export const getUserCookies = function (cookies,http) {
-  let flag = true;
-  if(!cookies.isKey(user2me)){
+export const getUserCookies = function (cookies, http) {
+  if (!cookies.isKey(user2me)) {
     http.post('/gojo/getUserFriends').then(function (res) {
-      if(res.data.flag){
-        cookies.set(user2me,JSON.stringify(res.data.obj),"1y")
+      if (res.data.success) {
+        cookies.set(user2me, JSON.stringify(res.data.obj), "1y")
       }
     }).catch(function (error) {
-      flag = false
       console.log(error)
     })
   }
-  if(!cookies.isKey(group2me)){
+  if (!cookies.isKey(group2me)) {
     http.post('/gojo/getUserGroups').then(function (res) {
-      if(res.data.flag){
-        cookies.set(group2me,JSON.stringify(res.data.obj),"1y")
+      if (res.data.success) {
+        cookies.set(group2me, JSON.stringify(res.data.obj), "1y")
       }
     }).catch(function (error) {
-      flag = false
       console.log(error);
-    })
+    });
   }
-  return flag
 }
 
 //添加用户好友或者陌生人信息

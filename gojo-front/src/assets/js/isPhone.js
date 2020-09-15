@@ -9,7 +9,7 @@ export const phoneTemp = [
     },
     {
       label:'大花博客',
-      text:'<iframe :src="https://www.dahuaboke.com/index" frameborder="0" :style="bokeStyle"></iframe>'
+      text:'<iframe src="https://dahuaboke.com/index" frameborder="0" style="bokeStyle"></iframe>'
     },
     {
       label:'我的资料',

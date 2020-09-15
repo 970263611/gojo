@@ -4,7 +4,6 @@ import api.MessageService;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import model.Chats;
-import org.jboss.netty.util.internal.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -16,6 +15,7 @@ import util.GojoUtil;
 import web.task.SendMsgTask;
 
 import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 @Component
 public class SocketHandler extends TextWebSocketHandler {
 
-    private static ExecutorService pool = Executors.newFixedThreadPool(5);
+    public static ExecutorService pool = Executors.newFixedThreadPool(5);
     private volatile static ConcurrentHashMap<Object, WebSocketSession> map = new ConcurrentHashMap<Object, WebSocketSession>();
     @Autowired
     private MessageService messageService;

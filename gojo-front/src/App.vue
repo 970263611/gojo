@@ -18,4 +18,9 @@ export default {
   .el-tabs__header{
     margin: 0;
   }
+  .el-textarea .el-input__count {
+    bottom: 10px;
+    left: 10px;
+    right: auto;
+  }
 </style>

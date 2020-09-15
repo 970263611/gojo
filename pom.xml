@@ -10,8 +10,8 @@
 
 	<modules>
 		<module>gojo-web</module>
-		<module>pojo-service</module>
-		<module>pojo-handler</module>
+		<module>gojo-service</module>
+		<module>gojo-handler</module>
 		<module>gojo-api</module>
 	</modules>
 

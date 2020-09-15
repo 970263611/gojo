@@ -1,20 +1,23 @@
 package web.controller;
 
 import api.MessageService;
+import com.dahuaboke.model.ResultModel;
 import exception.impl.NoLoginException;
 import lombok.extern.slf4j.Slf4j;
 import model.Friend;
 import model.Group;
-import model.ResultModel;
 import model.User;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import util.GojoUtil;
+import web.task.GetOfflineMsgTask;
 import web.util.WebUtil;
 
 import java.util.ArrayList;
@@ -32,25 +35,22 @@ public class WebController {
 
     @RequestMapping("/login")
     public ResultModel login(@RequestBody User user) {
-        ResultModel result = new ResultModel();
         UsernamePasswordToken token = new UsernamePasswordToken(user.getUsername(), user.getPassword());
         Subject subject = SecurityUtils.getSubject();
-        boolean flag = false;
         try {
             subject.login(token);
-            subject.getSession().setAttribute("user", messageService.check(user.getUsername()));
-            flag = true;
-        } catch (Exception e) {
-            result.setMsg("用户名或密码错误");
+        } catch (AuthenticationException e) {
+            SecurityUtils.getSubject().getSession().stop();
+            return ResultModel.fail("用户名或密码错误");
+        } catch (UndeclaredThrowableException e) {
+            SecurityUtils.getSubject().getSession().stop();
+            return ResultModel.fail("服务器发生错误");
         }
-        result.setFlag(flag);
-        return result;
+        return ResultModel.success();
     }
 
     @RequestMapping("/registry")
     public ResultModel registry(@RequestBody User user) {
-        ResultModel result = new ResultModel();
-        boolean flag = false;
         try {
             if (GojoUtil.isNotEmpty(user.getUsername()) && GojoUtil.isNotEmpty(user.getPassword())) {
                 if (messageService.check(user.getUsername()) == null) {
@@ -59,55 +59,55 @@ public class WebController {
                     messageService.saveUser(user);
                     SecurityUtils.getSubject().getSession().setAttribute("user", user);
                     SecurityUtils.getSubject().getSession().setTimeout(-1);
-                    flag = true;
                 } else {
-                    result.setMsg("用户名重复");
+                    return ResultModel.fail("用户名重复");
                 }
             } else {
-                result.setMsg("创建用户资料不合法");
+                return ResultModel.fail("创建用户资料不合法");
             }
         } catch (Exception e) {
-            result.setMsg("存储用户信息失败");
+            return ResultModel.fail("存储用户信息失败");
         }
-        result.setFlag(flag);
-        return result;
+        return ResultModel.success();
     }
 
     @RequestMapping("/checkUser")
     public ResultModel checkUser(@RequestBody Map map) {
         String username = (String) map.get("username");
-        ResultModel result = new ResultModel();
-        boolean flag = true;
         if (messageService.check(username) != null) {
-            result.setMsg("用户名重复");
-            flag = false;
+            return ResultModel.fail("用户名重复");
         }
-        result.setFlag(flag);
-        return result;
+        return ResultModel.success();
     }
 
-    @RequestMapping("getUserFriends")
+    @RequestMapping("/getUserFriends")
     public ResultModel getUserFriends() {
         try {
             User user = WebUtil.getLoginUser();
             List<Friend> users = messageService.getUserFriends(user.getId());
-            return new ResultModel(true, users, null);
+            return ResultModel.success(users);
         } catch (NoLoginException e) {
             e.printStackTrace();
         }
-        return null;
+        return ResultModel.fail();
     }
 
-    @RequestMapping("getUserGroups")
-    public ResultModel getUserGroups(@RequestBody Map map) {
+    @RequestMapping("/getUserGroups")
+    public ResultModel getUserGroups() {
         List<Group> list = new ArrayList<Group>();
-        for (int a = 0; a < 10; a++) {
+        for (int a = 0; a < 9; a++) {
             List list1 = new ArrayList();
             Friend friend = new Friend(a + "g", "dahua" + a, true, "2020-01-0" + a);
             list1.add(friend);
             Group group = new Group(a + "", "dahuagroup" + a, list1, "2020-01-0" + a);
             list.add(group);
         }
-        return new ResultModel(true, list, null);
+        return ResultModel.success(list);
+    }
+
+    @RequestMapping("/getOfflineMsg")
+    public void getOfflineMsg() {
+        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
+        new Thread(new GetOfflineMsgTask(messageService, user.getId())).start();
     }
 }

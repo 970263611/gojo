@@ -36,13 +36,13 @@
           'username': this.username.trim(),
           'password': this.password.trim()
         }).then(function (response) {
-            if(response.data.flag){
-              const flag = getUserCookies(fun.$cookies,fun.$http)
-              if(flag){
+            if(response.data.success){
+              getUserCookies(fun.$cookies,fun.$http)
+              setTimeout(()=>{
                 fun.$router.push('/index')
-              }
+              },500)
             }else{
-              fun.alertMsg = response.data.msg
+              fun.alertMsg = response.data.result.message
               fun.open()
             }
           }).catch(function (error) {
