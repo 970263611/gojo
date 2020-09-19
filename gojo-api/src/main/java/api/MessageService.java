@@ -15,9 +15,21 @@ public interface MessageService {
 
     void saveUser(User user) throws Exception;
 
-    List<Friend> getUserFriends(String userId);
+    List<User> getUserFriends(String userId);
 
     List<Group> getUserGroups(String userId);
 
     List<Chats> getOfflineMsg(String userId);
+
+    List<Friend> getGroupUsers(String groupId);
+
+    void createGroup(Group group);
+
+    void updateGroupUsers(String groupId, List<String> userIds);
+
+    String getNotFriendAndGroup(String id);
+
+    void addFriend(String userId, String id);
+
+    void addGroup(String userId, String id);
 }

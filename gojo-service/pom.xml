@@ -44,12 +44,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.62</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.dahuagojo</groupId>
             <artifactId>gojo-api</artifactId>
             <version>${gojo.version}</version>

@@ -27,7 +27,7 @@ public class SocketInterceptor extends HttpSessionHandshakeInterceptor {
                 attributes.put(Const.LOGIN_USER_ID_CONST, user.getId());
                 attributes.put(Const.LOGIN_USER_NAME_CONST, user.getUsername());
             }else{
-                throw new NoLoginException("用户未登录");
+//                throw new NoLoginException("用户未登录");
             }
         }
         return super.beforeHandshake(request, response, wsHandler, attributes);

@@ -1,7 +1,7 @@
 import {activeChat, group2me, groupChat, user2me, userChat} from "./const";
 //加载用户好友和群组信息
 export const getUserCookies = function (cookies, http) {
-  if (!cookies.isKey(user2me)) {
+  // if (!cookies.isKey(user2me)) {
     http.post('/gojo/getUserFriends').then(function (res) {
       if (res.data.success) {
         cookies.set(user2me, JSON.stringify(res.data.obj), "1y")
@@ -9,8 +9,8 @@ export const getUserCookies = function (cookies, http) {
     }).catch(function (error) {
       console.log(error)
     })
-  }
-  if (!cookies.isKey(group2me)) {
+  // }
+  // if (!cookies.isKey(group2me)) {
     http.post('/gojo/getUserGroups').then(function (res) {
       if (res.data.success) {
         cookies.set(group2me, JSON.stringify(res.data.obj), "1y")
@@ -18,7 +18,7 @@ export const getUserCookies = function (cookies, http) {
     }).catch(function (error) {
       console.log(error);
     });
-  }
+  // }
 }
 
 //添加用户好友或者陌生人信息

@@ -22,13 +22,23 @@
                   </el-tab-pane>
                   <el-tab-pane label="我的好友">
                     <div v-for="(item) in loadUsers" class="chat" @click="toChat('user',item.userId,item.username)">
-                      <el-avatar icon="el-icon-user-solid" shape="square" :size="50"></el-avatar>
+                      <el-image v-if="item.headImg !== null && item.headImg !==''"
+                                style="width: 60px; height: 60px"
+                                :src="item.headImg"
+                                fit="fill"></el-image>
+                      <el-avatar v-if="item.headImg =='' || item.headImg ==null" icon="el-icon-user-solid"
+                                 shape="square" :size="50"></el-avatar>
                       <span>{{ item.username }}</span>
                     </div>
                   </el-tab-pane>
                   <el-tab-pane label="我的群组">
                     <div v-for="(item) in loadGroups" class="chat" @click="toChat('group',item.groupId,item.groupName)">
-                      <el-avatar icon="el-icon-user-solid" shape="square" :size="50"></el-avatar>
+                      <el-image v-if="item.headImg !== null && item.headImg !==''"
+                                style="width: 60px; height: 60px"
+                                :src="item.headImg"
+                                fit="fill"></el-image>
+                      <el-avatar v-if="item.headImg =='' || item.headImg ==null" icon="el-icon-user-solid"
+                                 shape="square" :size="50"></el-avatar>
                       <span>{{ item.groupName }}</span>
                     </div>
                   </el-tab-pane>
@@ -104,14 +114,13 @@
 <script>
 import {phoneTemp} from '../assets/js/isPhone.js'
 import {
-  setUserCookies,
+  getActiveChats,
   getUserChatMsg,
-  setUserChatMsg,
   setActiveChats,
-  getActiveChats
+  setUserChatMsg,
+  setUserCookies
 } from '../assets/js/user-cookies.js'
 import {getFormatTime} from '../assets/js/util.js'
-import {user2me} from "../assets/js/const";
 
 export default {
   data() {
@@ -149,8 +158,9 @@ export default {
       chats: {},
       activeChats: '',
       chatBodyStyle: {
-        'max-height':''
-      }
+        'max-height': ''
+      },
+      getOfflineMsgSize: 0
     }
   },
   created() {
@@ -159,14 +169,14 @@ export default {
     this.dynamicDiv.height = window.innerHeight - 120 + 'px';
     this.outside_left.height = window.innerHeight - 120 - 40 + 'px';
     this.outside_right.height = window.innerHeight - 120 + 'px';
-    this.bokeStyle.height = window.innerHeight - 120 + 60 + 'px';
+    this.bokeStyle.height = window.innerHeight - 120 + 'px';
     //打字框138 padding向下10 头部58 上padding20 和打字框padding20
-    this.chatBodyStyle["max-height"] = window.innerHeight - 120 - 138 - 10 - 58 - 20 -20 + 'px';
+    this.chatBodyStyle["max-height"] = window.innerHeight - 120 - 138 - 10 - 58 - 20 - 20 + 'px';
     if (window.innerWidth < 768) {
       this.tabPosition = 'top'
       this.isPhone = true
     }
-    document.onkeydown = function(e) {
+    document.onkeydown = function (e) {
       let key = window.event.keyCode;
       if (key == 13) {
         alert(1)
@@ -178,6 +188,7 @@ export default {
     const {height, width, display} = this.bokeStyle
     this.phoneJs[2].text = this.phoneJs[2].text.replace('bokeStyle', `height: ${height};width: ${width};display: ${display};`)
     this.init()
+    setInterval(this.onopen, 500);
   },
   methods: {
     load() {
@@ -251,13 +262,16 @@ export default {
     //连接成功建立的回调方法
     onopen() {
       if (setUserCookies(this.$cookies).friends != undefined) {
-        this.loadUsers = JSON.parse(setUserCookies(this.$cookies).friends)
+        this.loadUsers = JSON.parse(setUserCookies(this.$cookies).friends).reverse()
       }
       if (setUserCookies(this.$cookies).groups != undefined) {
-        this.loadGroups = JSON.parse(setUserCookies(this.$cookies).groups)
+        this.loadGroups = JSON.parse(setUserCookies(this.$cookies).groups).reverse()
       }
       this.activeChats = getActiveChats(this.$cookies)
-      this.$http.post('/gojo/getOfflineMsg')
+      if (this.getOfflineMsgSize < 1) {
+        this.$http.post('/gojo/getOfflineMsg')
+      }
+      this.getOfflineMsgSize += 1
     },
     //接收到消息的回调方法
     onmessage(msg) {
@@ -344,11 +358,13 @@ main {
   width: 96%;
   padding-left: 2%;
 }
+
 .chatBtn {
   position: absolute;
   right: 2%;
   bottom: 13%;
 }
+
 .chatBody {
   overflow-y: scroll;
 }

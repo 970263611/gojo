@@ -20,10 +20,10 @@ public interface MessageDao {
     @Insert("insert into user value (#{user.id},#{user.username},#{user.password},#{user.createTime})")
     int saveUser(@Param("user") User user);
 
-    @Select("SELECT a.id userId,a.username,true,a.createTime FROM `user` a LEFT JOIN friend b on b.friendId = a.id WHERE b.userId = #{0}")
-    List<Friend> getUserFriends(String userId);
+    @Select("select u.id,u.username,u.headImg from `user` u right JOIN friend f on f.friendId = u.id WHERE f.userId = #{0}")
+    List<User> getUserFriends(String userId);
 
-    @Select("select * from group where userId = #{0}")
+    @Select("select * from `group` where JSON_CONTAINS(users, #{0}) > 0")
     List<Group> getUserGroups(String userId);
 
     @Select("select * from chats where toUserId = #{0} order by createTime asc")
@@ -36,8 +36,32 @@ public interface MessageDao {
             "</foreach>" +
             "</script>"
     )
-    void deleteOfflineMsg(@Param("ids")List<String> ids);
+    void deleteOfflineMsg(@Param("ids") List<String> ids);
 
     @Delete("delete from chats where id = #{id}")
-    int deleteOfflineMsg1(@Param("id")String id);
+    int deleteOfflineMsg1(@Param("id") String id);
+
+    //    @Select("select u.id userId,u.username username,g.friend from `user` u right join " +
+//            "(select users->'$[0].userId' userId,users->'$[0].friend' friend from `group` " +
+//            "where groupId = #{0}) g on u.id = g.userId")
+    @Select("select id userId,username username from `user` where JSON_CONTAINS((select users from `group` where groupId = #{0}), CONCAT('[\"',id,'\"]') ) > 0")
+    List<Friend> getGroupUsers(String groupId);
+
+    @Insert("insert into `group` values (#{group.groupId},#{group.groupName},#{group.users},#{group.createUser},#{group.createTime},#{group.notice},#{group.remark},#{group.headImg})")
+    void createGroup(@Param("group") Group group);
+
+    @Update("update `group` set users = #{userIds} where groupId = #{groupId}")
+    void updateGroupUsers(@Param("groupId") String groupId, @Param("userIds") String userIds);
+
+    @Select("SELECT id,username from `user` where id not in (SELECT friendId FROM friend where userId = #{0} and isFriend = 1) and id != #{0}")
+    List<User> getNotFriend(String id);
+
+    @Select("select groupId,groupName from `group` where JSON_CONTAINS(users, #{0}) = 0")
+    List<Group> getNotGroup(String id);
+
+    @Update("update `group` set users = (select JSON_MERGE(users,CONCAT('[\"',#{userId},'\"]'))) where groupId = #{groupId}")
+    void addGroup(@Param("userId") String userId, @Param("groupId") String groupId);
+
+    @Insert("insert into friend values (#{friend.userId},#{friend.friendId},#{friend.isFriend},#{friend.createTime})")
+    void addFriend(@Param("friend") Friend friend);
 }

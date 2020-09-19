@@ -14,5 +14,9 @@ export const phoneTemp = [
     {
       label:'我的资料',
       text:'配置管理'
+    },
+    {
+      label:'管理群组',
+      text:'<createGroup></createGroup>'
     }
   ]

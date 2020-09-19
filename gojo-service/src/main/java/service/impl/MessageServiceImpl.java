@@ -1,6 +1,7 @@
 package service.impl;
 
 import api.MessageService;
+import com.alibaba.fastjson.JSON;
 import com.dahuaboke.rpc.annotation.RpcService;
 import model.Chats;
 import model.Friend;
@@ -10,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import service.dao.MessageDao;
 
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RpcService
 @Transactional(rollbackFor = Exception.class)
@@ -34,11 +37,12 @@ public class MessageServiceImpl implements MessageService {
         }
     }
 
-    public List<Friend> getUserFriends(String userId) {
+    public List<User> getUserFriends(String userId) {
         return dao.getUserFriends(userId);
     }
 
     public List<Group> getUserGroups(String userId) {
+        userId = "[\"" + userId + "\"]";
         return dao.getUserGroups(userId);
     }
 
@@ -49,8 +53,47 @@ public class MessageServiceImpl implements MessageService {
 //        if(!ids.isEmpty()){
 //            dao.deleteOfflineMsg(ids);
 //        }
-        offlineMsg.forEach(o ->dao.deleteOfflineMsg1(o.getId()));
+        offlineMsg.forEach(o -> dao.deleteOfflineMsg1(o.getId()));
         return offlineMsg;
+    }
+
+    @Override
+    public List<Friend> getGroupUsers(String groupId) {
+        return dao.getGroupUsers(groupId);
+    }
+
+    @Override
+    public void createGroup(Group group) {
+        dao.createGroup(group);
+    }
+
+    @Override
+    public void updateGroupUsers(String groupId, List<String> userIds) {
+        dao.updateGroupUsers(groupId, JSON.toJSONString(userIds));
+    }
+
+    @Override
+    public String getNotFriendAndGroup(String id) {
+        Map map = new HashMap() {{
+            put("users", dao.getNotFriend(id));
+            put("groups", dao.getNotGroup("[\"" + id + "\"]"));
+        }};
+        return JSON.toJSONString(map);
+    }
+
+    @Override
+    public void addFriend(String userId, String friendId) {
+        Friend friend = new Friend();
+        friend.setUserId(userId);
+        friend.setFriendId(friendId);
+        friend.setFriend(true);
+        friend.setCreateTime(new Date());
+        dao.addFriend(friend);
+    }
+
+    @Override
+    public void addGroup(String userId, String groupId) {
+        dao.addGroup(userId, groupId);
     }
 
 

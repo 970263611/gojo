@@ -11,7 +11,6 @@ Vue.use(VueCookies)
 Vue.use(ElementUI)
 
 Vue.prototype.$http = axios
-
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

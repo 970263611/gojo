@@ -21,6 +21,22 @@ export default new Router({
     {
       path: '/registry',
       component: () => import("@/views/registry")
+    },
+    {
+      path: '/createGroup',
+      component: () => import("@/components/createGroup")
+    },
+    {
+      path: '/changeGroup',
+      component: () => import("@/components/changeGroup")
+    },
+    {
+      path: '/newFriendAndGroup',
+      component: () => import("@/components/newFriendAndGroup")
+    },
+    {
+      path: '/my',
+      component: () => import("@/components/my")
     }
   ]
 })
