@@ -1,6 +1,5 @@
 <template>
   <div id="allTag">
-    <h2>添加新的朋友和群组吧</h2>
     <div>
       <h4>新的朋友</h4>
       <el-tag
@@ -40,7 +39,7 @@ export default {
   },
   created() {
     const fun = this
-    this.$http.post('/gojo/getNotFriendAndGroup').then(function (res) {
+    this.$http.post('/gojo/web/getNotFriendAndGroup').then(function (res) {
       if (res.data.success) {
         for (const u of res.data.obj.users) {
           fun.users.push({
@@ -62,7 +61,7 @@ export default {
   mounted() {
     setTimeout(() => {
       this.changeIcon()
-    }, 500)
+    }, 1000)
     // this.$nextTick(() => {
     //   this.changeIcon()
     // })
@@ -93,7 +92,7 @@ export default {
     },
     addFriendOrGroup(type, id) {
       const fun = this
-      fun.$http.post('/gojo/' + type, {
+      fun.$http.post('/gojo/web/' + type, {
         'id': id,
       }).then(function (res) {
         if (res.data.success) {

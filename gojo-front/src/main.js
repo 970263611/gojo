@@ -13,6 +13,17 @@ Vue.use(ElementUI)
 Vue.prototype.$http = axios
 Vue.config.productionTip = false
 
+// http request 拦截器
+axios.interceptors.request.use(
+  config => {
+    config.headers.Authorization = localStorage.token;  //将token设置成请求头
+    return config;
+  },
+  err => {
+    return Promise.reject(err);
+  }
+);
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

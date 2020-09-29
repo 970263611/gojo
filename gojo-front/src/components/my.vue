@@ -1,10 +1,10 @@
 <template>
-  <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+  <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm" style="margin-top: 20px;">
     <el-form-item label="我的昵称" prop="username">
       <el-input v-model="ruleForm.username"></el-input>
     </el-form-item>
     <el-form-item label="我的密码" prop="password">
-      <el-input v-model="ruleForm.password"></el-input>
+      <el-input v-model="ruleForm.password" show-password></el-input>
     </el-form-item>
     <el-form-item label="我的头像">
       <el-upload
@@ -24,6 +24,8 @@
   </el-form>
 </template>
 <script>
+import {getUserCookies} from "../assets/js/user-cookies";
+
 export default {
   data() {
     return {
@@ -31,9 +33,8 @@ export default {
       imgUploadUrl: '/gojo/imgUploadUrl',
       localImgUrl: '',
       ruleForm: {
-        groupName: '',
-        notice: '',
-        remark: ''
+        username: '',
+        password: ''
       },
       rules: {
         username: [
@@ -47,22 +48,25 @@ export default {
       }
     };
   },
+  created() {
+    this.getMe()
+  },
   methods: {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           const fun = this
-          this.$http.post('/gojo/createGroup', {
-            'groupName': this.ruleForm.groupName,
-            'notice': this.ruleForm.notice,
-            'remark': this.ruleForm.remark,
+          this.$http.post('/gojo/web/updateUser', {
+            'username': this.ruleForm.username,
+            'password': this.ruleForm.password,
             'headImg': this.localImgUrl
           }).then(function (response) {
             if (response.data.success) {
-              fun.$message.success('创建资料成功');
+              fun.$message.success('修改资料成功')
+              fun.getMe()
             }
           }).catch(function (error) {
-            fun.$message.error('创建资料失败');
+            fun.$message.error('修改资料失败')
             console.log(error)
           })
         } else {
@@ -79,7 +83,6 @@ export default {
         this.imageUrl = URL.createObjectURL(file.raw)
         this.localImgUrl = res.result.message
       }
-
     },
     beforeAvatarUpload(file) {
       const isJPG = file.type === 'image/jpeg'
@@ -97,6 +100,18 @@ export default {
     },
     clearFiles() {
       this.imageUrl = ''
+    },
+    getMe(){
+      const fun = this
+      this.$http.post('/gojo/web/getMy').then(function (response) {
+        if (response.data.success) {
+          fun.ruleForm.username = response.data.obj.username
+          fun.ruleForm.password = response.data.obj.password
+          fun.imageUrl = response.data.obj.headImg
+        }
+      }).catch(function (error) {
+        console.log(error)
+      })
     }
   }
 }

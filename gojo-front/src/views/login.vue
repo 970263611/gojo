@@ -22,7 +22,11 @@
       }
     },
     created() {
-
+      // this.$http.post('/gojo/handler/getWebAddr').then(function (response) {
+      //   window.localStorage.setItem("webAddress", "http://" + response.data);
+      // }).catch(function (error) {
+      //   console.log(error);
+      // })
     },
     methods: {
       toLogin() {
@@ -32,12 +36,16 @@
           this.open()
           return
         }
-        this.$http.post('/gojo/login', {
+        this.$http.post('/gojo/handler/login', {
           'username': this.username.trim(),
           'password': this.password.trim()
         }).then(function (response) {
             if(response.data.success){
-              getUserCookies(fun.$cookies,fun.$http)
+              window.localStorage.setItem("token", response.data.obj);
+              const flag = getUserCookies(fun.$cookies,fun.$http)
+              if(!flag){
+                window.location.href = "/"
+              }
               setTimeout(()=>{
                 fun.$router.push('/index')
               },500)

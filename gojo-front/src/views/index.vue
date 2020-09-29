@@ -3,7 +3,7 @@
     <el-header class="logo"><h1>gojo</h1></el-header>
     <el-main>
       <el-row>
-        <el-col :xs="24" :sm="24" :md="9" :lg="8" :xl="7">
+        <el-col :xs="24" :sm="24" :md="6" :lg="5" :xl="5">
           <transition name="el-fade-in">
             <div v-show="isChat">
               <div :style="dynamicDiv">
@@ -21,7 +21,7 @@
                     </template>
                   </el-tab-pane>
                   <el-tab-pane label="我的好友">
-                    <div v-for="(item) in loadUsers" class="chat" @click="toChat('user',item.userId,item.username)">
+                    <div v-for="(item) in loadUsers" class="chat" @click="toChat('user',item.id,item.username)">
                       <el-image v-if="item.headImg !== null && item.headImg !==''"
                                 style="width: 60px; height: 60px"
                                 :src="item.headImg"
@@ -59,15 +59,15 @@
                 <div id="chatBodyDiv" class="chatBody" :style="chatBodyStyle">
                   <div v-for="item in chats">
                     <div>
-                      <el-span v-if="!item.flag" style="float: left;">
+                      <span v-if="!item.flag" style="float: left;">
                         {{ item.username }}&nbsp&nbsp{{ item.time }}
-                      </el-span>
-                      <el-span v-if="item.flag" style="float: right;">
+                      </span>
+                      <span v-if="item.flag" style="float: right;">
                         {{ item.username }}&nbsp&nbsp{{ item.time }}
-                      </el-span>
+                      </span>
                       <br>
-                      <el-span v-if="!item.flag" style="float: left;">{{ item.msg }}</el-span>
-                      <el-span v-if="item.flag" style="float: right;">{{ item.msg }}</el-span>
+                      <span v-if="!item.flag" style="float: left;">{{ item.msg }}</span>
+                      <span v-if="item.flag" style="float: right;">{{ item.msg }}</span>
                     </div>
                     <br>
                   </div>
@@ -93,12 +93,11 @@
 
           </div>
         </el-col>
-        <el-col v-if="!isPhone" :xs="24" :sm="24" :md="15" :lg="16" :xl="16">
+        <el-col v-if="!isPhone" :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
           <div :style="dynamicDiv">
             <div class="outside" :style="outside_right">
               <el-tabs :tab-position="tabPosition">
                 <template v-for="(item,index) in phoneJs">
-                  <!--                  <el-tab-pane :label="item.label" :name="item.name" :key="index">{{item.text}}</el-tab-pane>-->
                   <el-tab-pane :label="item.label" :name="item.name" :key="index" v-html="item.text"></el-tab-pane>
                 </template>
               </el-tabs>
@@ -115,7 +114,7 @@
 import {phoneTemp} from '../assets/js/isPhone.js'
 import {
   getActiveChats,
-  getUserChatMsg,
+  getUserChatMsg, getUserCookies,
   setActiveChats,
   setUserChatMsg,
   setUserCookies
@@ -125,7 +124,7 @@ import {getFormatTime} from '../assets/js/util.js'
 export default {
   data() {
     return {
-      path: "ws:localhost:3210/gojo/websocket",
+      path: "/gojo/websocket",
       socket: null,
       params: "",
       count: 10,
@@ -184,11 +183,19 @@ export default {
     }
   },
   mounted() {
+    const fun = this
     this.phoneJs = phoneTemp
     const {height, width, display} = this.bokeStyle
-    this.phoneJs[2].text = this.phoneJs[2].text.replace('bokeStyle', `height: ${height};width: ${width};display: ${display};`)
-    this.init()
+    for (let js of this.phoneJs) {
+      js.text = js.text.replace('bokeStyle', `height: ${height};width: ${width};display: ${display};`)
+    }
+    this.$http.post('/gojo/handler/getWebSocketAddr').then(function (response) {
+      fun.init("ws:" + response.data + fun.path, localStorage.token)
+    }).catch(function (error) {
+      console.log(error);
+    })
     setInterval(this.onopen, 500);
+    setInterval(this.checkToken, 30000);
   },
   methods: {
     load() {
@@ -207,6 +214,9 @@ export default {
     },
     toList() {
       this.isChat = true
+    },
+    tabClick() {
+      alert(1)
     },
     sendMsg() {
       if (this.chatMsg != '') {
@@ -228,11 +238,12 @@ export default {
         this.chatMsg = ''
       }
     },
-    init() {
+    init(path, token) {
       if (typeof (WebSocket) === "undefined") {
         alert("您的浏览器不支持socket")
       } else {
-        this.socket = new WebSocket(this.path)
+        this.socket = new WebSocket(path, [token])
+        // this.socket = new WebSocket(path)
         // 监听打开
         this.socket.onopen = this.onopen;
         // 监听关闭
@@ -269,7 +280,7 @@ export default {
       }
       this.activeChats = getActiveChats(this.$cookies)
       if (this.getOfflineMsgSize < 1) {
-        this.$http.post('/gojo/getOfflineMsg')
+        this.$http.post('/gojo/web/getOfflineMsg')
       }
       this.getOfflineMsgSize += 1
     },
@@ -293,7 +304,17 @@ export default {
     },
     //连接关闭的回调方法
     onclose() {
-      window.location.href = "/"
+
+    },
+    checkToken() {
+      const json = {
+        'type': 'token',
+        'msg': localStorage.token
+      }
+      if (this.socket === null || this.socket.readyState !== 1) {
+        window.location.href = "/"
+      }
+      this.socket.send(JSON.stringify(json))
     }
   },
 }

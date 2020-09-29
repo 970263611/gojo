@@ -44,8 +44,8 @@ public interface MessageDao {
     //    @Select("select u.id userId,u.username username,g.friend from `user` u right join " +
 //            "(select users->'$[0].userId' userId,users->'$[0].friend' friend from `group` " +
 //            "where groupId = #{0}) g on u.id = g.userId")
-    @Select("select id userId,username username from `user` where JSON_CONTAINS((select users from `group` where groupId = #{0}), CONCAT('[\"',id,'\"]') ) > 0")
-    List<Friend> getGroupUsers(String groupId);
+    @Select("select id id,username username from `user` where JSON_CONTAINS((select users from `group` where groupId = #{0}), CONCAT('[\"',id,'\"]') ) > 0")
+    List<User> getGroupUsers(String groupId);
 
     @Insert("insert into `group` values (#{group.groupId},#{group.groupName},#{group.users},#{group.createUser},#{group.createTime},#{group.notice},#{group.remark},#{group.headImg})")
     void createGroup(@Param("group") Group group);
@@ -64,4 +64,10 @@ public interface MessageDao {
 
     @Insert("insert into friend values (#{friend.userId},#{friend.friendId},#{friend.isFriend},#{friend.createTime})")
     void addFriend(@Param("friend") Friend friend);
+
+    @Update("update `user` set username = #{user.username},password = #{user.password},headImg = #{user.headImg} where id = #{user.id}")
+    void updateUser(@Param("user")User user);
+
+    @Select("select id,username,headImg from `user` where id = #{0}")
+    User getMy(String id);
 }

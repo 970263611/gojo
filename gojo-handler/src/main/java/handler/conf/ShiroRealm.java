@@ -1,4 +1,4 @@
-package web.conf;
+package handler.conf;
 
 import api.MessageService;
 import model.User;
@@ -26,6 +26,7 @@ public class ShiroRealm extends AuthorizingRealm {
         User user = messageService.check(username);
         if (user != null) {
             SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(user.getUsername(), user.getPassword(), String.valueOf(System.currentTimeMillis()));
+            user.setPassword("");
             SecurityUtils.getSubject().getSession().setAttribute("user", user);
             return simpleAuthenticationInfo;
         } else {

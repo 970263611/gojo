@@ -21,7 +21,7 @@ public interface MessageService {
 
     List<Chats> getOfflineMsg(String userId);
 
-    List<Friend> getGroupUsers(String groupId);
+    List<User> getGroupUsers(String groupId);
 
     void createGroup(Group group);
 
@@ -32,4 +32,8 @@ public interface MessageService {
     void addFriend(String userId, String id);
 
     void addGroup(String userId, String id);
+
+    void updateUser(User user);
+
+    User getMy(String id);
 }

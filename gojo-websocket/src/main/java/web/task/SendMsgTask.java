@@ -1,6 +1,5 @@
 package web.task;
 
-import api.MessageService;
 import com.alibaba.fastjson.JSON;
 import lombok.SneakyThrows;
 import model.Chats;
@@ -12,13 +11,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SendMsgTask implements Runnable {
 
-    public SendMsgTask(Object bean, Chats model) {
+    public SendMsgTask(Chats model, String handlerAddress, String sessionIdEncode) {
         this.model = model;
-        this.bean = bean;
+        this.handlerAddress = handlerAddress;
+        this.sessionIdEncode = sessionIdEncode;
     }
 
     private Chats model;
-    private Object bean;
+    private String handlerAddress;
+    private String sessionIdEncode;
 
     @SneakyThrows
     @Override
@@ -30,11 +31,11 @@ public class SendMsgTask implements Runnable {
                 if (session.isOpen()) {
                     session.sendMessage(new TextMessage(JSON.toJSONString(model)));
                 } else {
-                    ((MessageService) bean).saveMsg(model);
+                    SocketHandler.pool.execute(new Thread(new SaveMsgTask(model, handlerAddress, sessionIdEncode)));
                 }
             }
         } else {
-            ((MessageService) bean).saveMsg(model);
+            SocketHandler.pool.execute(new Thread(new SaveMsgTask(model, handlerAddress, sessionIdEncode)));
         }
     }
 }

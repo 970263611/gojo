@@ -1,40 +1,50 @@
 <template>
-  <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-    <el-form-item label="群组名称" prop="groupName">
-      <el-input v-model="ruleForm.groupName"></el-input>
-    </el-form-item>
-    <el-form-item label="群组公告" prop="notice">
-      <el-input type="textarea" v-model="ruleForm.notice"></el-input>
-    </el-form-item>
-    <el-form-item label="群组简介" prop="remark">
-      <el-input type="textarea" v-model="ruleForm.remark"></el-input>
-    </el-form-item>
-    <el-form-item label="群组头像">
-      <el-upload
-        class="avatar-uploader"
-        :action="imgUploadUrl"
-        :show-file-list="false"
-        :on-success="handleAvatarSuccess"
-        :before-upload="beforeAvatarUpload">
-        <img v-if="imageUrl" :src="imageUrl" class="avatar">
-        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-      </el-upload>
-    </el-form-item>
-    <el-form-item>
-      <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
-      <el-button @click="resetForm('ruleForm')">重置</el-button>
-    </el-form-item>
-  </el-form>
+  <div style="margin-top: 20px;">
+    <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+      <el-form-item label="群组名称" prop="groupName">
+        <el-input v-model="ruleForm.groupName"></el-input>
+      </el-form-item>
+      <el-form-item label="群组公告" prop="notice">
+        <el-input type="textarea" v-model="ruleForm.notice"></el-input>
+      </el-form-item>
+      <el-form-item label="群组简介" prop="remark">
+        <el-input type="textarea" v-model="ruleForm.remark"></el-input>
+      </el-form-item>
+      <el-form-item label="群组头像">
+        <el-upload
+          class="avatar-uploader"
+          :action="imgUploadUrl"
+          :show-file-list="false"
+          :on-success="handleAvatarSuccess"
+          :before-upload="beforeAvatarUpload">
+          <img v-if="imageUrl" :src="imageUrl" class="avatar">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm('ruleForm')">立即创建</el-button>
+        <el-button @click="resetForm('ruleForm')">重置</el-button>
+      </el-form-item>
+    </el-form>
+<!--  <template>-->
+<!--    <changeGroup></changeGroup>-->
+<!--  </template>-->
+  </div>
 </template>
 
 <script>
 import {getUserCookies} from '../assets/js/user-cookies.js'
+// import changeGroup from '../components/changeGroup'
+
 
 export default {
+  // components:{
+  //   changeGroup
+  // },
   data() {
     return {
       imageUrl: '',
-      imgUploadUrl: '/gojo/imgUploadUrl',
+      imgUploadUrl: '/gojo/web/imgUploadUrl',
       localImgUrl: '',
       ruleForm: {
         groupName: '',
@@ -54,7 +64,7 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           const fun = this
-          this.$http.post('/gojo/createGroup', {
+          this.$http.post('/gojo/web/createGroup', {
             'groupName': this.ruleForm.groupName,
             'notice': this.ruleForm.notice,
             'remark': this.ruleForm.remark,

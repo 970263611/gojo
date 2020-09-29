@@ -58,7 +58,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<Friend> getGroupUsers(String groupId) {
+    public List<User> getGroupUsers(String groupId) {
         return dao.getGroupUsers(groupId);
     }
 
@@ -94,6 +94,16 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void addGroup(String userId, String groupId) {
         dao.addGroup(userId, groupId);
+    }
+
+    @Override
+    public void updateUser(User user) {
+        dao.updateUser(user);
+    }
+
+    @Override
+    public User getMy(String id) {
+        return dao.getMy(id);
     }
 
 

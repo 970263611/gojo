@@ -3,6 +3,7 @@
 // see http://vuejs-templates.github.io/webpack for documentation.
 
 const path = require('path')
+// const webAddress = localStorage.webAddress
 
 module.exports = {
   dev: {
@@ -11,10 +12,15 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/gojo': {
+      '/gojo/web': {
         changeOrigin: true, //跨域
         target: 'http://localhost:3210'
+        // target: webAddress
       },
+      '/gojo/handler': {
+        changeOrigin: true, //跨域
+        target: 'http://localhost:3219'
+      }
     },
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST

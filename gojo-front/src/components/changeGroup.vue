@@ -1,7 +1,7 @@
 <template>
-  <div>
-    <p style="text-align: center; margin: 0 0 20px">选择群</p>
-    <el-select v-model="group" filterable placeholder="请选择" @change="groupChange" @focus="groupFocus">
+  <div style="margin-left:30px;margin-top: 20px;">
+    <el-select v-model="group" filterable placeholder="请选择群组" @change="groupChange" @focus="groupFocus"
+               style="margin-bottom: 20px;">
       <el-option
         v-for="item in groups"
         :key="item.value"
@@ -10,8 +10,7 @@
       >
       </el-option>
     </el-select>
-    <p style="text-align: center; margin: 0 0 20px">管理群成员</p>
-    <div style="text-align: center">
+    <div style="margin-top: 20px;">
       <el-transfer
         style="text-align: left; display: inline-block"
         v-model="value"
@@ -55,7 +54,7 @@ export default {
           }
         }
       }
-      this.$http.post('/gojo/updateGroupUsers', {
+      this.$http.post('/gojo/web/updateGroupUsers', {
         'groupId': this.group,
         'userIds': this.value
       })
@@ -79,25 +78,25 @@ export default {
           }
         }
       }
-      this.$http.post('/gojo/getGroupUsers', {
+      this.$http.post('/gojo/web/getGroupUsers', {
         'groupId': this.group
       }).then(function (response) {
         if (response.data.success) {
           for (const d of response.data.obj) {
-            if (d.userId === fun.loginUserId) {
+            if (d.id === fun.loginUserId) {
               fun.data.push({
-                key: d.userId,
+                key: d.id,
                 label: d.username,
                 disabled: true
               })
             } else {
               fun.data.push({
-                key: d.userId,
+                key: d.id,
                 label: d.username,
                 disabled: !fun.author
               })
             }
-            fun.value.push(d.userId)
+            fun.value.push(d.id)
           }
           for (const u of users) {
             let index = false
@@ -128,3 +127,6 @@ export default {
   }
 };
 </script>
+<style>
+
+</style>

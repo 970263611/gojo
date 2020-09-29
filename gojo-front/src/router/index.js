@@ -37,6 +37,10 @@ export default new Router({
     {
       path: '/my',
       component: () => import("@/components/my")
+    },
+    {
+      path: '/dahuaboke',
+      component: () => "https://dahuaboke.com"
     }
   ]
 })

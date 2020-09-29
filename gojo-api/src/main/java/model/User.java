@@ -18,6 +18,7 @@ public class User implements Serializable {
     private String username;
     private String password;
     private String headImg;
+    @JSONField(deserialize = false)
     private String createTime;
 
     public void setCreateTime(Date createTime) {

@@ -3,123 +3,71 @@ package web.controller;
 import api.MessageService;
 import com.alibaba.fastjson.JSON;
 import com.dahuaboke.model.ResultModel;
-import exception.impl.NoLoginException;
 import lombok.extern.slf4j.Slf4j;
-import model.Friend;
+import model.Chats;
 import model.Group;
 import model.User;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import util.GojoUtil;
-import web.task.GetOfflineMsgTask;
-import web.util.WebUtil;
+import util.HttpClientUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/gojo")
+@RequestMapping("/gojo/web")
 public class WebController {
 
     @Autowired
     private MessageService messageService;
+    @Value("${handlerAddress}")
+    private String handlerAddress;
 
     @Value("${img.local.dir}")
     private String imgLocalDir;
 
-    @RequestMapping("/login")
-    public ResultModel login(@RequestBody User user) {
-        UsernamePasswordToken token = new UsernamePasswordToken(user.getUsername(), user.getPassword());
-        Subject subject = SecurityUtils.getSubject();
-        try {
-            subject.login(token);
-        } catch (AuthenticationException e) {
-            SecurityUtils.getSubject().getSession().stop();
-            return ResultModel.fail("用户名或密码错误");
-        } catch (UndeclaredThrowableException e) {
-            SecurityUtils.getSubject().getSession().stop();
-            return ResultModel.fail("服务器发生错误");
-        }
-        return ResultModel.success();
-    }
-
-    @RequestMapping("/registry")
-    public ResultModel registry(@RequestBody User user) {
-        try {
-            if (GojoUtil.isNotEmpty(user.getUsername()) && GojoUtil.isNotEmpty(user.getPassword())) {
-                if (messageService.check(user.getUsername()) == null) {
-                    user.setId(GojoUtil.getUUID());
-                    user.setCreateTime(new Date());
-                    messageService.saveUser(user);
-                    SecurityUtils.getSubject().getSession().setAttribute("user", user);
-                    SecurityUtils.getSubject().getSession().setTimeout(-1);
-                } else {
-                    return ResultModel.fail("用户名重复");
-                }
-            } else {
-                return ResultModel.fail("创建用户资料不合法");
-            }
-        } catch (Exception e) {
-            return ResultModel.fail("存储用户信息失败");
-        }
-        return ResultModel.success();
-    }
-
-    @RequestMapping("/checkUser")
-    public ResultModel checkUser(@RequestBody Map map) {
-        String username = (String) map.get("username");
-        if (messageService.check(username) != null) {
-            return ResultModel.fail("用户名重复");
-        }
-        return ResultModel.success();
-    }
-
     @RequestMapping("/getUserFriends")
-    public ResultModel getUserFriends() {
+    public ResultModel getUserFriends(String loginUser) {
         try {
-            User user = WebUtil.getLoginUser();
+            User user = JSON.parseObject(loginUser, User.class);
             List<User> users = messageService.getUserFriends(user.getId());
             return ResultModel.success(users);
-        } catch (NoLoginException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            return ResultModel.fail("000000");
         }
-        return ResultModel.fail();
     }
 
     @RequestMapping("/getUserGroups")
-    public ResultModel getUserGroups() {
-        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
-        List<Group> list = messageService.getUserGroups(user.getId());
-        list.forEach(l -> {
-            if (l.getCreateUser().equals(user.getId())) {
-                l.setAuthor(true);
-            }
-        });
-        return ResultModel.success(list);
+    public ResultModel getUserGroups(String loginUser) {
+        try {
+            User user = JSON.parseObject(loginUser, User.class);
+            List<Group> list = messageService.getUserGroups(user.getId());
+            list.forEach(l -> {
+                if (l.getCreateUser().equals(user.getId())) {
+                    l.setAuthor(true);
+                }
+            });
+            return ResultModel.success(list);
+        } catch (Exception e) {
+            return ResultModel.fail("000000");
+        }
     }
 
     @RequestMapping("/getGroupUsers")
     public ResultModel getGroupUsers(@RequestBody Map map) {
-        List<Friend> users = messageService.getGroupUsers((String) map.get("groupId"));
+        List<User> users = messageService.getGroupUsers((String) map.get("groupId"));
         return ResultModel.success(users);
     }
 
     @RequestMapping("/createGroup")
-    public ResultModel createGroup(@RequestBody Map map) {
-        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
+    public ResultModel createGroup(@RequestBody Map map, String loginUser) {
+        User user = JSON.parseObject(loginUser, User.class);
         Group group = new Group();
         group.setCreateUser(user.getId());
         group.setCreateTime(new Date());
@@ -136,9 +84,17 @@ public class WebController {
     }
 
     @RequestMapping("/getOfflineMsg")
-    public void getOfflineMsg() {
-        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
-        new Thread(new GetOfflineMsgTask(messageService, user.getId())).start();
+    public void getOfflineMsg(String loginUser, String sessionIdEncode) {
+        User user = JSON.parseObject(loginUser, User.class);
+        String addr = (String) HttpClientUtil.httpClient("http://" + handlerAddress + "/gojo/handler/getWebSocketAddr", null, String.class);
+        List<Chats> offlineMsg = messageService.getOfflineMsg(user.getId());
+        Map map = new HashMap() {{
+            put("chatsList", offlineMsg);
+            put("sessionIdEncode", sessionIdEncode);
+        }};
+        if (!offlineMsg.isEmpty()) {
+            HttpClientUtil.httpClient("http://" + addr + "/gojo/websocket/sendOfflineMsg", map, String.class);
+        }
     }
 
     @RequestMapping("/updateGroupUsers")
@@ -163,23 +119,47 @@ public class WebController {
     }
 
     @RequestMapping("/getNotFriendAndGroup")
-    public ResultModel getNotFriendAndGroup() {
-        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
-        Map map = JSON.parseObject(messageService.getNotFriendAndGroup(user.getId()));
-        return ResultModel.success(map);
+    public ResultModel getNotFriendAndGroup(String loginUser) {
+        User user = JSON.parseObject(loginUser, User.class);
+        Map resultMap = JSON.parseObject(messageService.getNotFriendAndGroup(user.getId()));
+        return ResultModel.success(resultMap);
     }
 
     @RequestMapping("/addFriend")
-    public ResultModel addFriend(@RequestBody Map map) {
-        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
+    public ResultModel addFriend(@RequestBody Map map, String loginUser) {
+        User user = JSON.parseObject(loginUser, User.class);
         messageService.addFriend(user.getId(), (String) map.get("id"));
         return ResultModel.success();
     }
 
     @RequestMapping("/addGroup")
-    public ResultModel addGroup(@RequestBody Map map) {
-        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("user");
-        messageService.addGroup(user.getId(),(String) map.get("id"));
+    public ResultModel addGroup(@RequestBody Map map, String loginUser) {
+        User user = JSON.parseObject(loginUser, User.class);
+        messageService.addGroup(user.getId(), (String) map.get("id"));
         return ResultModel.success();
+    }
+
+    @RequestMapping("/getMy")
+    public ResultModel getMy(String loginUser) {
+        User user = JSON.parseObject(loginUser, User.class);
+        User loginUserNow = messageService.getMy(user.getId());
+        return ResultModel.success(loginUserNow);
+    }
+
+    @RequestMapping("/updateUser")
+    public ResultModel updateUser(@RequestBody Map map, String loginUser) {
+        User userSession = JSON.parseObject(loginUser, User.class);
+        User user = new User();
+        user.setUsername((String) map.get("username"));
+        user.setPassword((String) map.get("password"));
+        user.setHeadImg((String) map.get("headImg"));
+        user.setId(userSession.getId());
+        messageService.updateUser(user);
+        return ResultModel.success();
+    }
+
+    @RequestMapping("/saveMsg")
+    public void saveMsg(@RequestBody Chats model) {
+        messageService.saveMsg(model);
     }
 }

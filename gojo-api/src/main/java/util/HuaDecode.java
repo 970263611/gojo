@@ -65,7 +65,7 @@ public class HuaDecode {
         throw new HuaDecodeException("error param!");
     }
 
-    static class HuaDecodeException extends UnsupportedEncodingException {
+    static public class HuaDecodeException extends UnsupportedEncodingException {
 
         public HuaDecodeException() {
             super();
